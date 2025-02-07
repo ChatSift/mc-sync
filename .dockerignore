@@ -7,7 +7,6 @@
 eslint.config.json
 README.md
 tsconfig.eslint.json
-vitest.config.ts
 
 docker-compose.yml
 Dockerfile
