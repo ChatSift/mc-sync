@@ -676,6 +676,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@sapphire/bitfield@npm:^1.2.4":
+  version: 1.2.4
+  resolution: "@sapphire/bitfield@npm:1.2.4"
+  checksum: 10/200ba98a8f466a4c39fca45954de9d8bf1986fce8633098db10698db6c0f2b3fce602a45d936b960d88643eab7b4596bcb536c8378a14c2a463f887a5a527469
+  languageName: node
+  linkType: hard
+
+"@sapphire/discord-utilities@npm:^3.4.4":
+  version: 3.4.4
+  resolution: "@sapphire/discord-utilities@npm:3.4.4"
+  dependencies:
+    discord-api-types: "npm:^0.37.114"
+  checksum: 10/b8eb98c25fb110460822d296adc7a82681860e660d85be4cd618d9426ecd45ccd3746b8f718b9fd3b16248f212e7c92e7bf7a7d5cd943e5c087ec63920884b22
+  languageName: node
+  linkType: hard
+
 "@sapphire/shapeshift@npm:^4.0.0":
   version: 4.0.0
   resolution: "@sapphire/shapeshift@npm:4.0.0"
@@ -4773,6 +4789,8 @@ __metadata:
     "@discordjs/builders": "npm:^1.10.0"
     "@discordjs/core": "npm:^2.0.1"
     "@discordjs/rest": "npm:^2.4.2"
+    "@sapphire/bitfield": "npm:^1.2.4"
+    "@sapphire/discord-utilities": "npm:^3.4.4"
     "@types/express": "npm:^4"
     discord-interactions: "npm:^4.1.1"
     eslint: "npm:^8.57.1"

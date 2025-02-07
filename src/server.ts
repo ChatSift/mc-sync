@@ -1,4 +1,4 @@
-import { InteractionType, type APIInteraction } from '@discordjs/core';
+import { InteractionType, MessageFlags, type APIInteraction } from '@discordjs/core';
 import { InteractionResponseType, verifyKeyMiddleware } from 'discord-interactions';
 import express from 'express';
 import { commands } from './commands/index.js';
@@ -35,6 +35,9 @@ server.post('/api/interactions/handle', verifyKeyMiddleware(ENV.PUBLIC_KEY), asy
 
 			res.status(200).send({
 				type: InteractionResponseType.DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE,
+				data: {
+					flags: MessageFlags.Ephemeral,
+				},
 			});
 
 			await command.handle(message);
