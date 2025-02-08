@@ -17,9 +17,12 @@ jobs:
 
       - name: Install deps
         run: yarn --immutable
+        working-directory: ./app
 
       - name: Build the code
         run: yarn run build
+        working-directory: ./app
 
       - name: Run ESLint
         run: yarn run lint
+        working-directory: ./app
