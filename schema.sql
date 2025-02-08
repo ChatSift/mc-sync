@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS linked_accounts;
+CREATE TABLE IF NOT EXISTS linked_accounts (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    discord_id TEXT NOT NULL UNIQUE,
+    minecraft_username TEXT NOT NULL UNIQUE,
+    confirmed BOOLEAN NOT NULL DEFAULT 0
+);

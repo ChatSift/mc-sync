@@ -8,10 +8,11 @@ import {
 	PermissionFlagsBits,
 	type APIChatInputApplicationCommandGuildInteraction,
 	type RESTPostAPIApplicationCommandsJSONBody,
-} from '@discordjs/core';
+} from '@discordjs/core/http-only';
+import type { API } from '@discordjs/core/http-only';
 import { InteractionOptionResolver } from '@sapphire/discord-utilities';
 import { PermissionsBitField } from '../permissions.js';
-import { api, ENV, logger } from '../util.js';
+import { logger, type Env } from '../util.js';
 
 export const interaction: RESTPostAPIApplicationCommandsJSONBody = {
 	name: 'setup',
@@ -42,9 +43,9 @@ export const interaction: RESTPostAPIApplicationCommandsJSONBody = {
 	integration_types: [ApplicationIntegrationType.GuildInstall],
 };
 
-export async function handle(interaction: APIChatInputApplicationCommandGuildInteraction) {
+export async function handle(interaction: APIChatInputApplicationCommandGuildInteraction, env: Env, api: API) {
 	if (!PermissionsBitField.has(BigInt(interaction.app_permissions), PermissionFlagsBits.ManageWebhooks)) {
-		return api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+		return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 			content: 'The bot does not have the required permissions to set up the webhook.',
 		});
 	}
@@ -54,11 +55,11 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 	switch (options.getSubcommand(true)) {
 		case 'webhook': {
 			const webhooks = await api.channels.getWebhooks(interaction.channel.id);
-			const webhook = webhooks.find((webhook) => webhook.user!.id === ENV.CLIENT_ID);
+			const webhook = webhooks.find((webhook) => webhook.user!.id === env.CLIENT_ID);
 			if (webhook) {
 				logger.debug('found existing webhook');
 				const fullWebhook = await api.webhooks.get(webhook.id);
-				return api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+				return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 					content: `Here's the webhook url: https://discord.com/api/webhooks/${fullWebhook.id}/${fullWebhook.token!}`,
 				});
 			}
@@ -68,7 +69,7 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 				name: 'Prompt',
 			});
 
-			return api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+			return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 				content: `Here's the webhook url: https://discord.com/api/webhooks/${newWebhook.id}/${newWebhook.token!}`,
 			});
 		}
@@ -77,21 +78,21 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 			const messageURL = options.getString('message', true);
 			const [channelId, messageId] = messageURL.split('/').slice(-2) as [string, string];
 			if (!channelId || !messageId) {
-				return api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+				return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 					content: 'Invalid message URL',
 				});
 			}
 
 			const message = await api.channels.getMessage(channelId, messageId).catch(() => null);
 			if (!message) {
-				return api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+				return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 					content: 'Message not found',
 				});
 			}
 
 			const webhook = message.webhook_id ? await api.webhooks.get(message.webhook_id).catch(() => null) : null;
-			if (!webhook || webhook.user!.id !== ENV.CLIENT_ID) {
-				return api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+			if (!webhook || webhook.user!.id !== env.CLIENT_ID) {
+				return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 					content: 'Message does not belong to bot webhook',
 				});
 			}
@@ -111,7 +112,7 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 					},
 				],
 			});
-			await api.interactions.editReply(ENV.CLIENT_ID, interaction.token, {
+			await api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 				content: 'Prompt added to the message',
 			});
 

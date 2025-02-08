@@ -1,0 +1,11 @@
+name = "discord-gate"
+main = "./src/index.ts"
+compatibility_date="2024-02-08"
+
+[dev]
+port = 5678
+
+[[d1_databases]]
+binding = "DB"
+database_name = "db"
+database_id = "04c8334b-c62c-4e24-8ff5-47b42f328773"

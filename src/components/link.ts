@@ -1,11 +1,10 @@
 import { ActionRowBuilder, ModalBuilder, TextInputBuilder } from '@discordjs/builders';
-import { TextInputStyle, type APIMessageComponentGuildInteraction } from '@discordjs/core';
-import { InteractionResponseType } from 'discord-interactions';
-import type { Response } from 'express';
+import { InteractionResponseType, TextInputStyle } from '@discordjs/core/http-only';
+import { JsonResponse } from '../response.js';
 
-export async function handle(res: Response, interaction: APIMessageComponentGuildInteraction) {
-	return res.status(200).send({
-		type: InteractionResponseType.MODAL,
+export async function handle(): Promise<JsonResponse> {
+	return new JsonResponse({
+		type: InteractionResponseType.Modal,
 		data: new ModalBuilder()
 			.setCustomId('submit')
 			.setTitle('Link your Minecraft account')

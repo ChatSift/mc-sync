@@ -19,17 +19,22 @@
 	"scripts": {
 		"lint": "eslint src && prettier --check .",
 		"build": "tsc",
+		"publish": "wrangler deploy",
+		"dev": "wrangler dev",
+		"schema:dev": "wrangler d1 execute db --local --file=./schema.sql",
+		"schema": "wrangler d1 execute db --remote --file=./schema.sql",
 		"format": "prettier --write .",
 		"update": "yarn upgrade-interactive"
 	},
 	"devDependencies": {
-		"@types/express": "^4",
+		"@cloudflare/workers-types": "^4.20250204.0",
 		"eslint": "^8.57.1",
 		"eslint-config-neon": "^0.1.62",
 		"prettier": "^3.3.3",
 		"prettier-eslint": "^16.3.0",
-		"turbo": "^2.3.1",
-		"typescript": "^5.6.3"
+		"typescript": "^5.6.3",
+		"undici-types": "^7.3.0",
+		"wrangler": "^3.107.3"
 	},
 	"dependencies": {
 		"@discordjs/builders": "^1.10.0",
@@ -38,9 +43,8 @@
 		"@sapphire/bitfield": "^1.2.4",
 		"@sapphire/discord-utilities": "^3.4.4",
 		"discord-interactions": "^4.1.1",
-		"express": "^4.21.2",
+		"itty-router": "^5.0.18",
 		"pino": "^9.6.0",
-		"postgres": "^3.4.5",
-		"zod": "^3.24.1"
+		"postgres": "^3.4.5"
 	}
 }

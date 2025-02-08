@@ -1,20 +1,20 @@
-import { API } from '@discordjs/core';
-import { REST } from '@discordjs/rest';
 import { pino } from 'pino';
-import { z } from 'zod';
 
-const schema = z.object({
-	DISCORD_TOKEN: z.string(),
-	NDOE_ENV: z.enum(['development', 'production']).default('production'),
-	DATABASE_URL: z.string(),
-	PUBLIC_KEY: z.string(),
-	CLIENT_ID: z.string(),
-	REGISTER_PASS: z.string(),
-});
-
-export const ENV = schema.parse(process.env);
-
-const rest = new REST({ version: '10' }).setToken(ENV.DISCORD_TOKEN);
-export const api = new API(rest);
+export interface Env {
+	CLIENT_ID: string;
+	DATABASE_URL: string;
+	DB: D1Database;
+	DISCORD_TOKEN: string;
+	NDOE_ENV: 'development' | 'production';
+	PUBLIC_KEY: string;
+	REGISTER_PASS: string;
+}
 
 export const logger = pino({ level: 'debug' });
+
+export interface LinkedAccount {
+	confirmed: boolean;
+	discord_id: string;
+	id: 0 | 1;
+	minecraft_username: string;
+}

@@ -1,4 +1,4 @@
-import { PermissionFlagsBits } from '@discordjs/core';
+import { PermissionFlagsBits } from '@discordjs/core/http-only';
 import type { ValueResolvable } from '@sapphire/bitfield';
 import { BitField } from '@sapphire/bitfield';
 
