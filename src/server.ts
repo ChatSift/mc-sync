@@ -3,6 +3,7 @@ import { InteractionResponseType, verifyKeyMiddleware } from 'discord-interactio
 import express from 'express';
 import { commands } from './commands/index.js';
 import { components } from './components/index.js';
+import { modals } from './modals/index.js';
 import { api, ENV, logger } from './util.js';
 
 export const server = express();
@@ -59,7 +60,6 @@ server.post('/api/interactions/handle', verifyKeyMiddleware(ENV.PUBLIC_KEY), asy
 			}
 
 			await component.handle(res, message);
-
 			break;
 		}
 
@@ -69,6 +69,18 @@ server.post('/api/interactions/handle', verifyKeyMiddleware(ENV.PUBLIC_KEY), asy
 		}
 
 		case InteractionType.ModalSubmit: {
+			const modal = message.data.custom_id in modals ? modals[message.data.custom_id as keyof typeof modals] : null;
+			if (!modal) {
+				logger.error({ modal: message.data.custom_id }, 'modal not found');
+				return res.status(200).send({
+					type: InteractionResponseType.CHANNEL_MESSAGE_WITH_SOURCE,
+					data: {
+						content: 'Modal not found. This is a bug.',
+					},
+				});
+			}
+
+			await modal.handle(res, message);
 			break;
 		}
 	}

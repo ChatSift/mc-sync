@@ -1,7 +1,6 @@
 import { API } from '@discordjs/core';
 import { REST } from '@discordjs/rest';
 import { pino } from 'pino';
-import postgres from 'postgres';
 import { z } from 'zod';
 
 const schema = z.object({
@@ -19,9 +18,3 @@ const rest = new REST({ version: '10' }).setToken(ENV.DISCORD_TOKEN);
 export const api = new API(rest);
 
 export const logger = pino({ level: 'debug' });
-
-export const sql = postgres(ENV.DATABASE_URL, {
-	debug(_, query, parameters, paramTypes) {
-		logger.debug({ query, parameters, paramTypes }, 'executed query');
-	},
-});
