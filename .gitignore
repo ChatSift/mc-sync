@@ -1,3 +1,8 @@
+.idea
+
+plugin/.gradle/*
+plugin/build/*
+
 worker/node_modules
 
 worker/.dev.vars

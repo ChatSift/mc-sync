@@ -1,0 +1,15 @@
+name: mc-sync
+version: '1.0'
+main: app.automoderator.mcSync.MCSyncPlugin
+api-version: '1.21'
+load: STARTUP
+
+commands:
+  verify:
+    description: "Used by users to verify their Discord account"
+    usage: "/discord-verify <discord id>"
+
+permissions:
+  mcsync.confirmed:
+    description: "Marks the user as having verified their Discord account"
+    default: op
