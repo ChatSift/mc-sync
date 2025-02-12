@@ -55,6 +55,9 @@ public final class MCSyncPlugin extends JavaPlugin implements Listener {
         }
 
         fetchAndUpdateWhitelist();
+        // I'm honestly not sure why this is necessary. Obviously, if they're in the map
+        // then I have already called .whitelist() on the Player object, and yet, without this
+        // the player gets interrupted by the whitelist check. I'm guessing the check/write to the whitelist is async.
         if (whitelistedUsers.containsKey(event.getPlayer().getName())) {
             event.allow();
         }
