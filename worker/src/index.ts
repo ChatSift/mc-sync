@@ -117,7 +117,7 @@ router.post('/api/interactions/handle', async (req, env, ctx, api) => {
 
 router.post('/api/interactions/register', async (req, env, _, api) => {
 	const headers = req.headers as Headers;
-	if (headers.get('authorization') !== env.REGISTER_PASS) {
+	if (headers.get('authorization') !== env.AUTH_PASS) {
 		return new Response('Unauthorized', { status: 401 });
 	}
 
@@ -129,7 +129,7 @@ router.post('/api/interactions/register', async (req, env, _, api) => {
 
 router.get('/api/whitelist', async (req, env) => {
 	const headers = req.headers as Headers;
-	if (headers.get('authorization') !== env.REGISTER_PASS) {
+	if (headers.get('authorization') !== env.AUTH_PASS) {
 		return new Response('Unauthorized', { status: 401 });
 	}
 
@@ -142,7 +142,7 @@ router.get('/api/whitelist', async (req, env) => {
 
 router.put('/api/whitelist/verify/:discord_id', async (req, env) => {
 	const headers = req.headers as Headers;
-	if (headers.get('authorization') !== env.REGISTER_PASS) {
+	if (headers.get('authorization') !== env.AUTH_PASS) {
 		return new Response('Unauthorized', { status: 401 });
 	}
 

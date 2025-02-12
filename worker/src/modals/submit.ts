@@ -66,8 +66,7 @@ async function handleSubmit(interaction: APIModalSubmitGuildInteraction, env: En
 		.run();
 
 	return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
-		content:
-			'Your submission has been received! Please join the server and use `/discord 223703707118731264`. If you used the wrong username, please resubmit.',
+		content: `Your submission has been received! Please join the server and use \`/verify-discord ${interaction.member.user.id}\`. If you used the wrong username, please resubmit first.`,
 		flags: MessageFlags.Ephemeral,
 	});
 }
