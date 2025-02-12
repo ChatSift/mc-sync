@@ -19,10 +19,7 @@
 		"verbatimModuleSyntax": true,
 		"declaration": false,
 		"noEmit": true,
-		"types": [
-            "@cloudflare/workers-types",
-            "node"
-        ]
+		"types": ["@cloudflare/workers-types", "node"]
 	},
 	"include": ["./src/**/*.ts"]
 }
