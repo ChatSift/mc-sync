@@ -8,7 +8,7 @@ import { commands } from './commands/index.js';
 import { components } from './components/index.js';
 import { modals } from './modals/index.js';
 import { JsonResponse } from './response.js';
-import { logger, type Env } from './util.js';
+import { logger, type Env, type LinkedAccount } from './util.js';
 
 const router = Router<IRequest, [Env, ExecutionContext, API]>();
 
@@ -117,7 +117,6 @@ router.post('/api/interactions/handle', async (req, env, ctx, api) => {
 
 router.post('/api/interactions/register', async (req, env, _, api) => {
 	const headers = req.headers as Headers;
-	// We do a little plain-text security
 	if (headers.get('authorization') !== env.REGISTER_PASS) {
 		return new Response('Unauthorized', { status: 401 });
 	}
@@ -126,6 +125,32 @@ router.post('/api/interactions/register', async (req, env, _, api) => {
 	logger.debug('registering commands');
 	await api.applicationCommands.bulkOverwriteGlobalCommands(env.CLIENT_ID, interactions);
 	return new Response('OK', { status: 200 });
+});
+
+router.get('/api/whitelist', async (req, env) => {
+	const headers = req.headers as Headers;
+	if (headers.get('authorization') !== env.REGISTER_PASS) {
+		return new Response('Unauthorized', { status: 401 });
+	}
+
+	const { results: connections } = await env.DB.prepare('SELECT * FROM linked_accounts').all<LinkedAccount>();
+	return new JsonResponse(
+		connections.map((conn) => ({ discord_id: conn.discord_id, minecraft_username: conn.minecraft_username })),
+		{ status: 200 },
+	);
+});
+
+router.put('/api/whitelist/verify/:discord_id', async (req, env) => {
+	const headers = req.headers as Headers;
+	if (headers.get('authorization') !== env.REGISTER_PASS) {
+		return new Response('Unauthorized', { status: 401 });
+	}
+
+	const { discord_id } = req.params;
+	const updated = await env.DB.prepare('UPDATE linked_accounts SET confirmed = true WHERE discord_id = ? RETURNING *')
+		.bind(discord_id)
+		.first<LinkedAccount>();
+	return new JsonResponse(updated!, { status: 200 });
 });
 
 router.all('*', () => {

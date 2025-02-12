@@ -15,6 +15,6 @@ export const logger = pino({ level: 'debug' });
 export interface LinkedAccount {
 	confirmed: boolean;
 	discord_id: string;
-	id: 0 | 1;
+	id: number;
 	minecraft_username: string;
 }
