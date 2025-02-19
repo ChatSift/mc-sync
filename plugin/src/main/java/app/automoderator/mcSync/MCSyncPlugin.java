@@ -3,13 +3,12 @@ package app.automoderator.mcSync;
 import app.automoderator.mcSync.commands.VerifyCommand;
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
-import org.bukkit.OfflinePlayer;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerLoginEvent;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitTask;
 
 import java.lang.reflect.Type;
 import java.net.URI;
@@ -20,13 +19,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
-record JSONResponseElement(String discord_id, String minecraft_username) {
-}
-
 public final class MCSyncPlugin extends JavaPlugin implements Listener {
     private boolean isFetching = false;
-    // mc_username -> discord_id
-    public final Map<String, String> whitelistedUsers = new HashMap<>();
+    public final Map<String, UserConnectionData> whitelistedUsers = new HashMap<>();
+    public final Set<String> whitelistExtension = new HashSet<>();
     public final HttpClient httpClient = HttpClient.newHttpClient();
 
     @Override
@@ -45,22 +41,18 @@ public final class MCSyncPlugin extends JavaPlugin implements Listener {
 
     @EventHandler
     public void onPlayerLogin(PlayerLoginEvent event) {
-        if (event.getPlayer().hasPermission("mcsync.confirmed")) {
-            event.allow();
-            return;
-        }
-
-        if (event.getPlayer().isWhitelisted()) {
+        if (event.getPlayer().isOp()) {
             return;
         }
 
         fetchAndUpdateWhitelist();
-        // I'm honestly not sure why this is necessary. Obviously, if they're in the map
-        // then I have already called .whitelist() on the Player object, and yet, without this
-        // the player gets interrupted by the whitelist check. I'm guessing the check/write to the whitelist is async.
-        if (whitelistedUsers.containsKey(event.getPlayer().getName())) {
+        if (whitelistedUsers.containsKey(event.getPlayer().getName()) || whitelistExtension.contains(event.getPlayer().getName())) {
             event.allow();
+            return;
         }
+
+        getLogger().info("User tried to join, but they haven't associated a Discord account yet");
+        event.disallow(PlayerLoginEvent.Result.KICK_OTHER, Component.text("This Minecraft account is not linked to any MC account!"));
     }
 
     private void fetchAndUpdateWhitelist() {
@@ -73,8 +65,8 @@ public final class MCSyncPlugin extends JavaPlugin implements Listener {
         getLogger().info("Fetching whitelist...");
 
         try {
-            Map<String, String> list = fetchWhitelist().get();
-            updateWhitelist(list);
+            fetchWhitelist().get();
+            getLogger().info("Successfully updated whitelist");
         } catch (InterruptedException | ExecutionException e) {
             getLogger().warning("Error while fetching whitelist: " + e.getMessage());
         }
@@ -82,7 +74,7 @@ public final class MCSyncPlugin extends JavaPlugin implements Listener {
         isFetching = false;
     }
 
-    private CompletableFuture<Map<String, String>> fetchWhitelist() {
+    private CompletableFuture<Void> fetchWhitelist() {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(getConfig().getString("api_base") + "/api/whitelist"))
                 .header("Authorization", getConfig().getString("api_auth"))
@@ -91,44 +83,30 @@ public final class MCSyncPlugin extends JavaPlugin implements Listener {
 
         return httpClient.sendAsync(request, HttpResponse.BodyHandlers.ofString())
             .thenApply(HttpResponse::body)
-            .thenApply(this::parseJSON)
+            .thenAccept(this::handleBody)
             .exceptionally(ex -> {
                 getLogger().warning("Something went wrong fetching the whitelist: " + ex);
-                return whitelistedUsers;
+                return null;
             });
     }
 
-    private void updateWhitelist(Map<String, String> newWhitelist) {
-        getLogger().info("Received whitelist data, going through the entries");
-
-        whitelistedUsers.clear();
-        whitelistedUsers.putAll(newWhitelist);
-
-        for (Map.Entry<String, String> entry : newWhitelist.entrySet()) {
-            String username = entry.getKey();
-            OfflinePlayer player = Bukkit.getOfflinePlayer(username);
-            if (!player.isWhitelisted()) {
-                player.setWhitelisted(true);
-                getLogger().info("Added: " + player.getName());
-            }
-        }
-
-        getLogger().info("Successfully updated whitelist");
-    }
-
-    private Map<String, String> parseJSON(String json) {
-        Map<String, String> data = new HashMap<>();
+    private void handleBody(String json) {
         try {
             Gson gson = new Gson();
-            Type listType = new TypeToken<List<JSONResponseElement>>(){}.getType();
-            List<JSONResponseElement> parsed = gson.fromJson(json, listType);
-            for (JSONResponseElement element : parsed) {
-                data.put(element.minecraft_username(), element.discord_id());
+            Type listType = new TypeToken<List<UserConnectionAPIResponse>>(){}.getType();
+            List<UserConnectionAPIResponse> parsed = gson.fromJson(json, listType);
+
+            whitelistedUsers.clear();
+            whitelistExtension.clear();
+
+            for (UserConnectionAPIResponse element : parsed) {
+                whitelistedUsers.put(element.java_username(), element.toUserConnectionData());
+                whitelistedUsers.put("." + element.bedrock_username(), element.toUserConnectionData());
+
+                whitelistExtension.addAll(Arrays.asList(element.sibling_usernames()));
             }
         } catch (Exception e) {
             getLogger().warning("Error parsing JSON: " + e.getMessage());
         }
-
-        return data;
     }
 }

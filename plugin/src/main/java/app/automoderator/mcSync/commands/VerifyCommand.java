@@ -22,17 +22,12 @@ public class VerifyCommand extends BukkitCommand {
 
     @Override
     public boolean execute(CommandSender sender, String commandLabel, String[] args) {
-        if (sender.hasPermission("mcsync.confirmed")) {
-            sender.sendPlainMessage("You have already verified.");
-            return false;
-        }
-
         if (args.length == 0) {
             sender.sendPlainMessage("Please provide your Discord ID");
             return false;
         }
 
-        String expectedDiscordId = plugin.whitelistedUsers.get(sender.getName());
+        String expectedDiscordId = plugin.whitelistedUsers.get(sender.getName()).discord_id();
         if (expectedDiscordId == null) {
             sender.sendMessage("Something seems off! Please tell an Admin to contact the plugin developer.");
             plugin.getLogger().warning("User not found in whitelistedUsers map");
@@ -51,7 +46,7 @@ public class VerifyCommand extends BukkitCommand {
 
         Bukkit.getScheduler().runTaskAsynchronously(this.plugin, () -> {
             HttpRequest request = HttpRequest.newBuilder()
-                    .uri(URI.create(plugin.getConfig().getString("api_base") + "/api/whitelist/verify/" + args[0]))
+                    .uri(URI.create(plugin.getConfig().getString("api_base") + "/api/whitelist/" + (sender.getName().startsWith(".") ? "bedrock" : "java") + "/verify/" + args[0]))
                     .header("Authorization", plugin.getConfig().getString("api_auth"))
                     .PUT(HttpRequest.BodyPublishers.noBody())
                     .build();

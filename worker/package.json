@@ -19,7 +19,7 @@
 	"scripts": {
 		"lint": "eslint src && prettier --check .",
 		"build": "tsc",
-		"publish": "wrangler deploy",
+		"publish": "yarn build && wrangler deploy",
 		"dev": "wrangler dev",
 		"schema:dev": "wrangler d1 execute db --local --file=./schema.sql",
 		"schema": "wrangler d1 execute db --remote --file=./schema.sql",

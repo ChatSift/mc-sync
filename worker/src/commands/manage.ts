@@ -8,7 +8,8 @@ import {
 } from '@discordjs/core/http-only';
 import type { API } from '@discordjs/core/http-only';
 import { InteractionOptionResolver } from '@sapphire/discord-utilities';
-import type { Env, LinkedAccount } from '../util.js';
+import type { LinkedSibling } from '../util.js';
+import { type Env, type LinkedAccount } from '../util.js';
 
 export const interaction: RESTPostAPIApplicationCommandsJSONBody = {
 	name: 'manage',
@@ -57,6 +58,7 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 			}
 
 			await env.DB.prepare('DELETE FROM linked_accounts WHERE discord_id = ?').bind(user.id).run();
+			await env.DB.prepare('DELETE FROM linked_siblings WHERE discord_id = ?').bind(user.id).run();
 
 			return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 				content: 'Successfully revoked the connection',
@@ -64,19 +66,45 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 		}
 
 		case 'view': {
-			const connections = await env.DB.prepare('SELECT * FROM linked_accounts').all<LinkedAccount>();
+			const { results: connectionsRaw } = await env.DB.prepare('SELECT * FROM linked_accounts').all<LinkedAccount>();
+			const { results: siblingConnections } = await env.DB.prepare(
+				'SELECT * FROM linked_siblings',
+			).all<LinkedSibling>();
 
-			if (!connections.results.length) {
+			const connections = connectionsRaw.map((connection) => {
+				const siblings = siblingConnections
+					.filter((sibling) => sibling.discord_id === connection.discord_id)
+					.map((sibling) => sibling.sibling_username);
+
+				return {
+					...connection,
+					siblings,
+				};
+			});
+
+			if (!connections.length) {
 				return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 					content: 'No connections found',
 				});
 			}
 
-			const users = await Promise.all(connections.results.map(async (conn) => api.users.get(conn.discord_id)));
-			const lines = connections.results.map(
-				(conn, index) =>
-					`${users[index]!.username} (${conn.discord_id}) - ${conn.minecraft_username} (confirmed: ${conn.confirmed ? 'Yes' : 'No'})`,
-			);
+			const users = await Promise.all(connections.map(async (conn) => api.users.get(conn.discord_id)));
+
+			const lines: string[] = [];
+			for (const [index, conn] of connections.entries()) {
+				const user = users[index]!;
+				lines.push(`${user.username} (${user.id}):`);
+				lines.push(`  Java: ${conn.java_username} (confirmed: ${conn.java_confirmed ? 'Yes' : 'No'})`);
+				lines.push(`  Bedrock: ${conn.bedrock_username} (confirmed: ${conn.bedrock_confirmed ? 'Yes' : 'No'})`);
+
+				lines.push('  Added siblings:');
+				for (const sibling of conn.siblings) {
+					lines.push(`    - ${sibling}`);
+				}
+
+				// for extra newline on join
+				lines.push('');
+			}
 
 			return api.interactions.editReply(env.CLIENT_ID, interaction.token, {
 				content: "Here's the full list",

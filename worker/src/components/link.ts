@@ -7,15 +7,23 @@ export async function handle(): Promise<JsonResponse> {
 		type: InteractionResponseType.Modal,
 		data: new ModalBuilder()
 			.setCustomId('submit')
-			.setTitle('Link your Minecraft account')
+			.setTitle('Link your Minecraft account(s)')
 			.addComponents(
 				new ActionRowBuilder<TextInputBuilder>().addComponents(
 					new TextInputBuilder()
-						.setCustomId('minecraft-username')
-						.setLabel('Minecraft Username')
+						.setCustomId('java-username')
+						.setLabel('Java Username')
 						.setPlaceholder('Joe')
 						.setStyle(TextInputStyle.Short)
-						.setRequired(true),
+						.setRequired(false),
+				),
+				new ActionRowBuilder<TextInputBuilder>().addComponents(
+					new TextInputBuilder()
+						.setCustomId('bedrock-username')
+						.setLabel('Bedrock Username')
+						.setPlaceholder('JoeBedrock')
+						.setStyle(TextInputStyle.Short)
+						.setRequired(false),
 				),
 			)
 			.toJSON(),

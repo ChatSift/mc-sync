@@ -8,7 +8,7 @@ import { commands } from './commands/index.js';
 import { components } from './components/index.js';
 import { modals } from './modals/index.js';
 import { JsonResponse } from './response.js';
-import { logger, type Env, type LinkedAccount } from './util.js';
+import { logger, type Env, type LinkedAccount, type LinkedSibling } from './util.js';
 
 const router = Router<IRequest, [Env, ExecutionContext, API]>();
 
@@ -90,7 +90,7 @@ router.post('/api/interactions/handle', async (req, env, ctx, api) => {
 				});
 			}
 
-			return component.handle(req, ctx, message);
+			return component.handle(req, ctx, env, message);
 		}
 
 		case InteractionType.ApplicationCommandAutocomplete: {
@@ -133,21 +133,56 @@ router.get('/api/whitelist', async (req, env) => {
 		return new Response('Unauthorized', { status: 401 });
 	}
 
-	const { results: connections } = await env.DB.prepare('SELECT * FROM linked_accounts').all<LinkedAccount>();
+	const { results: connectionsRaw } = await env.DB.prepare('SELECT * FROM linked_accounts').all<LinkedAccount>();
+	const { results: siblingConnections } = await env.DB.prepare('SELECT * FROM linked_siblings').all<LinkedSibling>();
+
+	const connections = connectionsRaw.map((connection) => {
+		const siblings = siblingConnections
+			.filter((sibling) => sibling.discord_id === connection.discord_id)
+			.map((sibling) => sibling.sibling_username);
+
+		return {
+			...connection,
+			siblings,
+		};
+	});
+
 	return new JsonResponse(
-		connections.map((conn) => ({ discord_id: conn.discord_id, minecraft_username: conn.minecraft_username })),
+		connections.map((conn) => ({
+			discord_id: conn.discord_id,
+			java_username: conn.java_username,
+			bedrock_username: conn.bedrock_username,
+			sibling_usernames: conn.siblings,
+		})),
 		{ status: 200 },
 	);
 });
 
-router.put('/api/whitelist/verify/:discord_id', async (req, env) => {
+router.put('/api/whitelist/java/verify/:discord_id', async (req, env) => {
 	const headers = req.headers as Headers;
 	if (headers.get('authorization') !== env.AUTH_PASS) {
 		return new Response('Unauthorized', { status: 401 });
 	}
 
 	const { discord_id } = req.params;
-	const updated = await env.DB.prepare('UPDATE linked_accounts SET confirmed = true WHERE discord_id = ? RETURNING *')
+	const updated = await env.DB.prepare(
+		'UPDATE linked_accounts SET java_confirmed = true WHERE discord_id = ? RETURNING *',
+	)
+		.bind(discord_id)
+		.first<LinkedAccount>();
+	return new JsonResponse(updated!, { status: 200 });
+});
+
+router.put('/api/whitelist/bedrock/verify/:discord_id', async (req, env) => {
+	const headers = req.headers as Headers;
+	if (headers.get('authorization') !== env.AUTH_PASS) {
+		return new Response('Unauthorized', { status: 401 });
+	}
+
+	const { discord_id } = req.params;
+	const updated = await env.DB.prepare(
+		'UPDATE linked_accounts SET bedrock_confirmed = true WHERE discord_id = ? RETURNING *',
+	)
 		.bind(discord_id)
 		.first<LinkedAccount>();
 	return new JsonResponse(updated!, { status: 200 });

@@ -5,7 +5,14 @@ compatibility_date="2024-02-08"
 [dev]
 port = 5678
 
+[vars]
+PUBLIC_KEY = "77efe9e887b5b3b3182fee8896aaea6a18253971e444ceebd7c2dfc19db8d7b6"
+CLIENT_ID = "1337413723471609887"
+
+[observability.logs]
+enabled = true
+
 [[d1_databases]]
 binding = "DB"
 database_name = "db"
-database_id = "04c8334b-c62c-4e24-8ff5-47b42f328773"
+database_id = "0344e53c-14f3-40c0-9563-2a8f2e5b4012"

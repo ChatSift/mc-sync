@@ -26,7 +26,7 @@ export const interaction: RESTPostAPIApplicationCommandsJSONBody = {
 		},
 		{
 			name: 'prompt',
-			description: 'Message URL to the prompt (message must belong to bot webhook)',
+			description: 'Sets up the main bot prompt used for linking accounts',
 			type: ApplicationCommandOptionType.Subcommand,
 			options: [
 				{
@@ -105,8 +105,14 @@ export async function handle(interaction: APIChatInputApplicationCommandGuildInt
 							{
 								type: ComponentType.Button,
 								style: ButtonStyle.Primary,
-								label: 'Link my account',
+								label: 'Link my Minecraft account',
 								custom_id: 'link',
+							},
+							{
+								type: ComponentType.Button,
+								style: ButtonStyle.Secondary,
+								label: "Add a sibling's Minecraft account",
+								custom_id: 'link-sibling',
 							},
 						],
 					},
