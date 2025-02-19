@@ -23,8 +23,8 @@ Invite the bot to your server, ensure it can manage webhooks, then use `/setup w
 to display using the given webhook token (I recommend [discohook](https://discohook.org/)), then use `/setup prompt`
 with the message link for your prompt.
 
-At this point, users can use the newly added button to link their accounts. They should be automatically added to the
-whitelist when they try to join the server, after which they are expected to use the `/verify-discord` command in-game.
+At this point, users can use the newly added button to link their accounts. They should now also be able to join the
+server, after which they are expected to use the `/verify-discord` command in-game.
 
 ## Caveat worth mentioning
 
